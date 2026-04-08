@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><title>Blackjack – Minimal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f7f7f5;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;color:#1a1a1a}
+.wrap{width:min(680px,96vw);display:flex;flex-direction:column;gap:32px;padding:20px}
+header{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid #e0e0e0;padding-bottom:16px}
+h1{font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#111}
+.tagline{font-size:.72rem;color:#bbb;letter-spacing:.08em}
+.zone{display:flex;flex-direction:column;gap:12px}
+.label{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#bbb;display:flex;align-items:center;gap:10px}
+.score-badge{font-size:.9rem;color:#111;font-weight:700;letter-spacing:0}
+.hand{display:flex;flex-wrap:wrap;gap:8px;min-height:108px;align-items:flex-start}
+.card{width:66px;height:98px;border-radius:6px;background:#fff;border:1px solid #e8e8e8;box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);display:grid;grid-template-rows:auto 1fr auto;padding:6px;animation:deal .18s ease-out;flex-shrink:0}
+@keyframes deal{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.c-top{font-size:.75rem;font-weight:700;line-height:1.1;display:flex;flex-direction:column}
+.c-bot{font-size:.75rem;font-weight:700;line-height:1.1;display:flex;flex-direction:column;align-items:flex-end;transform:rotate(180deg)}
+.c-mid{display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.red{color:#d93025}.black{color:#111}
+.face-down{background:#f0f0ee;border:1px solid #e0e0e0;box-shadow:none}
+.divider{height:1px;background:#e8e8e8}
+.msg{text-align:center;font-size:.95rem;font-weight:600;letter-spacing:.06em;padding:12px;display:none;border-radius:4px}
+.msg.show{display:block}
+.win{color:#1a7a4a;background:#f0faf4}
+.lose{color:#b0291a;background:#fdf4f3}
+.tie{color:#888;background:#f5f5f5}
+.controls{display:flex;justify-content:center;gap:10px}
+.btn{border:1px solid #e0e0e0;border-radius:4px;padding:11px 28px;font-size:.78rem;font-family:inherit;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:600;background:#fff;color:#333;transition:all .12s}
+.btn:hover:not(:disabled){background:#f5f5f5;border-color:#ccc}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-deal{background:#111;color:#fff;border-color:#111}
+.btn-deal:hover:not(:disabled){background:#333;border-color:#333}
+.btn-hit{border-color:#1a7a4a;color:#1a7a4a}
+.btn-hit:hover:not(:disabled){background:#f0faf4}
+.btn-stand{border-color:#b0291a;color:#b0291a}
+.btn-stand:hover:not(:disabled){background:#fdf4f3}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Blackjack</h1>
+    <span class="tagline">Dealer stands on 17</span>
+  </header>
+  <div class="zone">
+    <div class="label">Dealer <span id="ds" class="score-badge"></span></div>
+    <div id="dh" class="hand"></div>
+  </div>
+  <div class="divider"></div>
+  <div id="msg" class="msg"></div>
+  <div class="zone">
+    <div class="label">Player <span id="ps" class="score-badge"></span></div>
+    <div id="ph" class="hand"></div>
+  </div>
+  <div class="controls">
+    <button class="btn btn-deal" id="deal">Deal</button>
+    <button class="btn btn-hit" id="hit" disabled>Hit</button>
+    <button class="btn btn-stand" id="stand" disabled>Stand</button>
+  </div>
+</div>
+<script>
+const SUITS=["Hearts","Diamonds","Clubs","Spades"],RANKS=["2","3","4","5","6","7","8","9","10","J","Q","K","A"],SYM={Hearts:"♥",Diamonds:"♦",Clubs:"♣",Spades:"♠"},RED=new Set(["Hearts","Diamonds"]);
+let deck=[],player=[],dealer=[];
+function buildDeck(){const d=[];for(const s of SUITS)for(const r of RANKS)d.push({r,s});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
+function cval(c){if(["J","Q","K"].includes(c.r))return 10;if(c.r==="A")return 11;return+c.r;}
+function hval(h){let t=h.reduce((s,c)=>s+cval(c),0),a=h.filter(c=>c.r==="A").length;while(t>21&&a){t-=10;a--;}return t;}
+function makeCard(c,down=false){
+  const el=document.createElement("div");el.className="card"+(down?" face-down":"");
+  if(!down){el.classList.add(RED.has(c.s)?"red":"black");el.innerHTML=`<div class="c-top"><span>${c.r}</span><span>${SYM[c.s]}</span></div><div class="c-mid">${SYM[c.s]}</div><div class="c-bot"><span>${c.r}</span><span>${SYM[c.s]}</span></div>`;}
+  return el;
+}
+function renderHand(id,hand,hide=false){const el=document.getElementById(id);el.innerHTML="";hand.forEach((c,i)=>el.appendChild(makeCard(c,hide&&i===1)));}
+function setScore(id,hand,hide=false){document.getElementById(id).textContent=hide?"":hval(hand);}
+function showMsg(txt,type){const m=document.getElementById("msg");m.textContent=txt;m.className="msg show "+type;}
+function hideMsg(){document.getElementById("msg").className="msg";}
+function setBtns(d,h,s){document.getElementById("deal").disabled=!d;document.getElementById("hit").disabled=!h;document.getElementById("stand").disabled=!s;}
+function startDeal(){deck=buildDeck();player=[deck.pop(),deck.pop()];dealer=[deck.pop(),deck.pop()];hideMsg();renderHand("dh",dealer,true);renderHand("ph",player);setScore("ds",dealer,true);setScore("ps",player);const pb=hval(player)===21,db=hval(dealer)===21;if(pb||db){renderHand("dh",dealer);setScore("ds",dealer);if(pb&&db)showMsg("Both Blackjack — Tie","tie");else if(pb)showMsg("Blackjack — You Win","win");else showMsg("Dealer Blackjack — You Lose","lose");setBtns(true,false,false);return;}setBtns(false,true,true);}
+function doHit(){player.push(deck.pop());renderHand("ph",player);setScore("ps",player);const t=hval(player);if(t>21){renderHand("dh",dealer);setScore("ds",dealer);showMsg("Bust — You Lose","lose");setBtns(true,false,false);}else if(t===21)doStand();}
+function doStand(){setBtns(false,false,false);renderHand("dh",dealer);setScore("ds",dealer);function step(){if(hval(dealer)<17){dealer.push(deck.pop());renderHand("dh",dealer);setScore("ds",dealer);setTimeout(step,380);}else resolve();}step();}
+function resolve(){const p=hval(player),d=hval(dealer);if(d>21)showMsg("Dealer Busts — You Win","win");else if(p>d)showMsg("You Win","win");else if(p<d)showMsg("You Lose","lose");else showMsg("Tie","tie");setBtns(true,false,false);}
+document.getElementById("deal").onclick=startDeal;
+document.getElementById("hit").onclick=doHit;
+document.getElementById("stand").onclick=doStand;
+</script>
+</body>
+</html>
