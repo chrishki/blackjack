@@ -1,14 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><title>Blackjack – Minimal</title>
+<meta charset="UTF-8"><title>Blackjack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f7f7f5;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;color:#1a1a1a}
-.wrap{width:min(680px,96vw);display:flex;flex-direction:column;gap:32px;padding:20px}
-header{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid #e0e0e0;padding-bottom:16px}
-h1{font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#111}
-.tagline{font-size:.72rem;color:#bbb;letter-spacing:.08em}
+
+/* Theme tokens */
+:root{--primary:#111;--primary-hover:#333;--bg:#f7f7f5;--active-hand:#111}
+.theme-aria    {--primary:#1E4A8C;--primary-hover:#163870;--bg:#e8eef8;--active-hand:#1E4A8C}
+.theme-bellagio{--primary:#B8962A;--primary-hover:#96780E;--bg:#faf9f2;--active-hand:#B8962A}
+.theme-wynn    {--primary:#B87478;--primary-hover:#985C60;--bg:#faf7f8;--active-hand:#B87478}
+
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;color:#1a1a1a;transition:background .35s}
+.wrap{width:min(720px,96vw);display:flex;flex-direction:column;gap:28px;padding:20px}
+
+/* ── Header ── */
+header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e0e0;padding-bottom:16px}
+
+/* Brand swap */
+.brand{position:relative;display:flex;align-items:center;height:1.5rem}
+
+.brand-title{
+  position:absolute;left:0;top:50%;transform:translateY(-50%);
+  font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#111;
+  white-space:nowrap;
+  opacity:1;
+  transition:opacity .3s ease,transform .3s ease;
+}
+.brand-logos{
+  position:absolute;left:0;top:50%;transform:translateY(-50%) translateX(-10px);
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease,transform .3s ease;
+  white-space:nowrap;display:flex;align-items:center;
+}
+
+/* When a casino is active */
+.brand.show-logo .brand-title{
+  opacity:0;transform:translateY(-50%) translateX(14px);pointer-events:none;
+}
+.brand.show-logo .brand-logos{
+  opacity:1;transform:translateY(-50%) translateX(0);pointer-events:auto;
+}
+
+/* Individual logo wordmarks — only one is display:block at a time */
+.logo-name{display:none}
+.logo-name.active{display:inline-block}
+
+.logo-aria{
+  font-size:1.15rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+  color:#1E4A8C;font-family:'Montserrat',sans-serif;
+}
+.logo-bellagio{
+  font-size:1.05rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  color:#B8962A;font-family:Georgia,'Times New Roman',serif;
+}
+.logo-wynn{
+  font-size:1.3rem;font-weight:400;letter-spacing:.12em;
+  color:#B87478;font-family:'Palatino Linotype',Palatino,Georgia,serif;font-style:italic;
+}
+
+/* Spacer so header doesn't collapse when brand-title is transparent */
+.brand-sizer{
+  font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  visibility:hidden;pointer-events:none;white-space:nowrap;
+}
+
+/* ── Nav ── */
+.theme-nav{display:flex;align-items:center;gap:4px}
+.nav-sep{font-size:.65rem;color:#ddd;padding:0 2px;user-select:none}
+.nav-btn{background:none;border:none;font-family:inherit;font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#ccc;cursor:pointer;padding:5px 8px;border-radius:4px;transition:color .15s}
+.nav-btn:hover,.nav-btn.active{color:#111}
+.nav-play-wrap{position:relative}
+.casino-menu{visibility:hidden;opacity:0;pointer-events:none;position:absolute;top:100%;right:0;padding-top:8px;min-width:148px;z-index:100;transition:opacity .14s,visibility 0s .14s}
+.casino-menu-inner{background:#fff;border:1px solid #ebebeb;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.09);padding:5px}
+.nav-play-wrap:hover .casino-menu{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .14s,visibility 0s}
+.casino-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;background:none;border:none;font-family:inherit;font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#555;cursor:pointer;border-radius:5px;transition:background .12s,color .12s;text-align:left}
+.casino-item:hover{background:#f5f5f5;color:#111}
+.casino-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-aria{background:#1E4A8C}
+.dot-bellagio{background:#B8962A}
+.dot-wynn{background:#B87478}
+
+/* ── Game layout ── */
 .zone{display:flex;flex-direction:column;gap:12px}
 .label{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#bbb;display:flex;align-items:center;gap:10px}
 .score-badge{font-size:.9rem;color:#111;font-weight:700;letter-spacing:0}
@@ -20,30 +96,72 @@ h1{font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercas
 .c-mid{display:flex;align-items:center;justify-content:center;font-size:1.3rem}
 .red{color:#d93025}.black{color:#111}
 .face-down{background:#f0f0ee;border:1px solid #e0e0e0;box-shadow:none}
+
+#split-area{display:none;gap:14px}
+.split-hand-wrap{flex:1;border:1px solid #e8e8e8;border-radius:8px;padding:12px;background:#fff;transition:border-color .2s,box-shadow .2s}
+.split-hand-wrap.active-hand{border-color:var(--active-hand);box-shadow:0 0 0 1px var(--active-hand)}
+.split-label{margin-bottom:8px}
+
 .divider{height:1px;background:#e8e8e8}
 .msg{text-align:center;font-size:.95rem;font-weight:600;letter-spacing:.06em;padding:12px;display:none;border-radius:4px}
 .msg.show{display:block}
 .win{color:#1a7a4a;background:#f0faf4}
 .lose{color:#b0291a;background:#fdf4f3}
 .tie{color:#888;background:#f5f5f5}
-.controls{display:flex;justify-content:center;gap:10px}
-.btn{border:1px solid #e0e0e0;border-radius:4px;padding:11px 28px;font-size:.78rem;font-family:inherit;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:600;background:#fff;color:#333;transition:all .12s}
+.controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid #e0e0e0;border-radius:4px;padding:11px 22px;font-size:.78rem;font-family:inherit;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:600;background:#fff;color:#333;transition:background .12s,border-color .12s,color .12s}
 .btn:hover:not(:disabled){background:#f5f5f5;border-color:#ccc}
 .btn:disabled{opacity:.35;cursor:not-allowed}
-.btn-deal{background:#111;color:#fff;border-color:#111}
-.btn-deal:hover:not(:disabled){background:#333;border-color:#333}
+.btn-deal{background:var(--primary);color:#fff;border-color:var(--primary);transition:background .35s,border-color .35s}
+.btn-deal:hover:not(:disabled){background:var(--primary-hover);border-color:var(--primary-hover)}
 .btn-hit{border-color:#1a7a4a;color:#1a7a4a}
 .btn-hit:hover:not(:disabled){background:#f0faf4}
 .btn-stand{border-color:#b0291a;color:#b0291a}
 .btn-stand:hover:not(:disabled){background:#fdf4f3}
+.btn-double{border-color:#1a5a9a;color:#1a5a9a}
+.btn-double:hover:not(:disabled){background:#f0f4fa}
+.btn-split{border-color:#7a4aaa;color:#7a4aaa}
+.btn-split:hover:not(:disabled){background:#f5f0fa}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Blackjack</h1>
-    <span class="tagline">Dealer stands on 17</span>
+    <div class="brand" id="brand">
+      <!-- invisible sizer keeps the header height stable -->
+      <span class="brand-sizer">Blackjack</span>
+      <!-- visible title -->
+      <span class="brand-title">Blackjack</span>
+      <!-- casino logos (one becomes .active at a time) -->
+      <div class="brand-logos">
+        <span class="logo-name logo-aria"     id="logo-aria">Aria</span>
+        <span class="logo-name logo-bellagio" id="logo-bellagio">Bellagio</span>
+        <span class="logo-name logo-wynn"     id="logo-wynn">Wynn</span>
+      </div>
+    </div>
+
+    <nav class="theme-nav">
+      <button class="nav-btn active" id="nav-learn">Learn</button>
+      <span class="nav-sep">|</span>
+      <div class="nav-play-wrap">
+        <button class="nav-btn" id="nav-play">Play &#9662;</button>
+        <div class="casino-menu">
+          <div class="casino-menu-inner">
+            <button class="casino-item" data-theme="aria">
+              <span class="casino-dot dot-aria"></span>Aria
+            </button>
+            <button class="casino-item" data-theme="bellagio">
+              <span class="casino-dot dot-bellagio"></span>Bellagio
+            </button>
+            <button class="casino-item" data-theme="wynn">
+              <span class="casino-dot dot-wynn"></span>Wynn
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
   </header>
+
   <div class="zone">
     <div class="label">Dealer <span id="ds" class="score-badge"></span></div>
     <div id="dh" class="hand"></div>
@@ -53,19 +171,35 @@ h1{font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercas
   <div class="zone">
     <div class="label">Player <span id="ps" class="score-badge"></span></div>
     <div id="ph" class="hand"></div>
+    <div id="split-area">
+      <div class="split-hand-wrap" id="swrap0">
+        <div class="label split-label">Hand 1 <span id="ss0" class="score-badge"></span></div>
+        <div id="sh0" class="hand"></div>
+      </div>
+      <div class="split-hand-wrap" id="swrap1">
+        <div class="label split-label">Hand 2 <span id="ss1" class="score-badge"></span></div>
+        <div id="sh1" class="hand"></div>
+      </div>
+    </div>
   </div>
   <div class="controls">
-    <button class="btn btn-deal" id="deal">Deal</button>
-    <button class="btn btn-hit" id="hit" disabled>Hit</button>
-    <button class="btn btn-stand" id="stand" disabled>Stand</button>
+    <button class="btn btn-deal"   id="deal">Deal</button>
+    <button class="btn btn-hit"    id="hit"    disabled>Hit</button>
+    <button class="btn btn-stand"  id="stand"  disabled>Stand</button>
+    <button class="btn btn-double" id="double" disabled>Double</button>
+    <button class="btn btn-split"  id="split"  disabled>Split</button>
   </div>
 </div>
 <script>
+/* ── Game logic ── */
 const SUITS=["Hearts","Diamonds","Clubs","Spades"],RANKS=["2","3","4","5","6","7","8","9","10","J","Q","K","A"],SYM={Hearts:"♥",Diamonds:"♦",Clubs:"♣",Spades:"♠"},RED=new Set(["Hearts","Diamonds"]);
-let deck=[],player=[],dealer=[];
+let deck=[],player=[],dealer=[],splitMode=false,splitAces=false,activeHand=0,hands=[[],[]];
+
 function buildDeck(){const d=[];for(const s of SUITS)for(const r of RANKS)d.push({r,s});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
 function cval(c){if(["J","Q","K"].includes(c.r))return 10;if(c.r==="A")return 11;return+c.r;}
 function hval(h){let t=h.reduce((s,c)=>s+cval(c),0),a=h.filter(c=>c.r==="A").length;while(t>21&&a){t-=10;a--;}return t;}
+function canSplit(){return player.length===2&&cval(player[0])===cval(player[1]);}
+
 function makeCard(c,down=false){
   const el=document.createElement("div");el.className="card"+(down?" face-down":"");
   if(!down){el.classList.add(RED.has(c.s)?"red":"black");el.innerHTML=`<div class="c-top"><span>${c.r}</span><span>${SYM[c.s]}</span></div><div class="c-mid">${SYM[c.s]}</div><div class="c-bot"><span>${c.r}</span><span>${SYM[c.s]}</span></div>`;}
@@ -75,14 +209,161 @@ function renderHand(id,hand,hide=false){const el=document.getElementById(id);el.
 function setScore(id,hand,hide=false){document.getElementById(id).textContent=hide?"":hval(hand);}
 function showMsg(txt,type){const m=document.getElementById("msg");m.textContent=txt;m.className="msg show "+type;}
 function hideMsg(){document.getElementById("msg").className="msg";}
-function setBtns(d,h,s){document.getElementById("deal").disabled=!d;document.getElementById("hit").disabled=!h;document.getElementById("stand").disabled=!s;}
-function startDeal(){deck=buildDeck();player=[deck.pop(),deck.pop()];dealer=[deck.pop(),deck.pop()];hideMsg();renderHand("dh",dealer,true);renderHand("ph",player);setScore("ds",dealer,true);setScore("ps",player);const pb=hval(player)===21,db=hval(dealer)===21;if(pb||db){renderHand("dh",dealer);setScore("ds",dealer);if(pb&&db)showMsg("Both Blackjack — Tie","tie");else if(pb)showMsg("Blackjack — You Win","win");else showMsg("Dealer Blackjack — You Lose","lose");setBtns(true,false,false);return;}setBtns(false,true,true);}
-function doHit(){player.push(deck.pop());renderHand("ph",player);setScore("ps",player);const t=hval(player);if(t>21){renderHand("dh",dealer);setScore("ds",dealer);showMsg("Bust — You Lose","lose");setBtns(true,false,false);}else if(t===21)doStand();}
-function doStand(){setBtns(false,false,false);renderHand("dh",dealer);setScore("ds",dealer);function step(){if(hval(dealer)<17){dealer.push(deck.pop());renderHand("dh",dealer);setScore("ds",dealer);setTimeout(step,380);}else resolve();}step();}
-function resolve(){const p=hval(player),d=hval(dealer);if(d>21)showMsg("Dealer Busts — You Win","win");else if(p>d)showMsg("You Win","win");else if(p<d)showMsg("You Lose","lose");else showMsg("Tie","tie");setBtns(true,false,false);}
+function setBtns(d,h,s,dbl,spl){
+  document.getElementById("deal").disabled=!d;
+  document.getElementById("hit").disabled=!h;
+  document.getElementById("stand").disabled=!s;
+  document.getElementById("double").disabled=!dbl;
+  document.getElementById("split").disabled=!spl;
+}
+
+function resetSplitUI(){
+  splitMode=false;splitAces=false;activeHand=0;hands=[[],[]];
+  document.getElementById("ph").style.display="";
+  document.getElementById("split-area").style.display="none";
+  document.getElementById("swrap0").classList.remove("active-hand");
+  document.getElementById("swrap1").classList.remove("active-hand");
+}
+
+function startDeal(){
+  resetSplitUI();
+  deck=buildDeck();player=[deck.pop(),deck.pop()];dealer=[deck.pop(),deck.pop()];
+  hideMsg();renderHand("dh",dealer,true);renderHand("ph",player);setScore("ds",dealer,true);setScore("ps",player);
+  const pb=hval(player)===21,db=hval(dealer)===21;
+  if(pb||db){
+    renderHand("dh",dealer);setScore("ds",dealer);
+    if(pb&&db)showMsg("Both Blackjack — Tie","tie");
+    else if(pb)showMsg("Blackjack — You Win","win");
+    else showMsg("Dealer Blackjack — You Lose","lose");
+    setBtns(true,false,false,false,false);return;
+  }
+  setBtns(false,true,true,true,canSplit());
+}
+
+function doHit(){
+  if(splitMode){
+    hands[activeHand].push(deck.pop());
+    renderHand("sh"+activeHand,hands[activeHand]);
+    document.getElementById("ss"+activeHand).textContent=hval(hands[activeHand]);
+    if(hval(hands[activeHand])>=21)advanceSplitHand();
+  } else {
+    player.push(deck.pop());renderHand("ph",player);setScore("ps",player);
+    const t=hval(player);
+    if(t>21){renderHand("dh",dealer);setScore("ds",dealer);showMsg("Bust — You Lose","lose");setBtns(true,false,false,false,false);}
+    else if(t===21)doStand();
+    else setBtns(false,true,true,false,false);
+  }
+}
+
+function doStand(){
+  if(splitMode){advanceSplitHand();}
+  else{setBtns(false,false,false,false,false);runDealerTurn(resolve);}
+}
+
+function doDouble(){
+  if(splitMode){
+    hands[activeHand].push(deck.pop());
+    renderHand("sh"+activeHand,hands[activeHand]);
+    document.getElementById("ss"+activeHand).textContent=hval(hands[activeHand]);
+    advanceSplitHand();
+  } else {
+    player.push(deck.pop());renderHand("ph",player);setScore("ps",player);
+    setBtns(false,false,false,false,false);
+    if(hval(player)>21){renderHand("dh",dealer);setScore("ds",dealer);showMsg("Doubled — Bust. You Lose.","lose");setBtns(true,false,false,false,false);return;}
+    runDealerTurn(resolve);
+  }
+}
+
+function doSplit(){
+  splitMode=true;splitAces=player[0].r==="A";
+  hands=[[player[0]],[player[1]]];
+  hands[0].push(deck.pop());hands[1].push(deck.pop());
+  activeHand=0;
+  document.getElementById("ph").style.display="none";
+  document.getElementById("split-area").style.display="flex";
+  renderHand("sh0",hands[0]);renderHand("sh1",hands[1]);
+  document.getElementById("ss0").textContent=hval(hands[0]);
+  document.getElementById("ss1").textContent=hval(hands[1]);
+  document.getElementById("swrap0").classList.add("active-hand");
+  if(splitAces){setBtns(false,false,false,false,false);runDealerTurn(resolveSplit);}
+  else{setBtns(false,true,true,true,false);}
+}
+
+function advanceSplitHand(){
+  if(activeHand===0){
+    activeHand=1;
+    document.getElementById("swrap0").classList.remove("active-hand");
+    document.getElementById("swrap1").classList.add("active-hand");
+    setBtns(false,true,true,true,false);
+  } else {
+    setBtns(false,false,false,false,false);
+    runDealerTurn(resolveSplit);
+  }
+}
+
+function runDealerTurn(callback){
+  renderHand("dh",dealer);setScore("ds",dealer);
+  function step(){if(hval(dealer)<17){dealer.push(deck.pop());renderHand("dh",dealer);setScore("ds",dealer);setTimeout(step,380);}else callback();}
+  step();
+}
+
+function resolve(){
+  const p=hval(player),d=hval(dealer);
+  if(d>21)showMsg("Dealer Busts — You Win","win");
+  else if(p>d)showMsg("You Win","win");
+  else if(p<d)showMsg("You Lose","lose");
+  else showMsg("Tie","tie");
+  setBtns(true,false,false,false,false);
+}
+
+function resolveSplit(){
+  const d=hval(dealer);
+  const results=hands.map((h,i)=>{
+    const p=hval(h);
+    if(p>21)return`Hand ${i+1}: Bust`;
+    if(d>21||p>d)return`Hand ${i+1}: Win`;
+    if(p<d)return`Hand ${i+1}: Lose`;
+    return`Hand ${i+1}: Tie`;
+  });
+  const wins=results.filter(r=>r.includes("Win")).length;
+  const losses=results.filter(r=>r.includes("Lose")||r.includes("Bust")).length;
+  showMsg(results.join(" · "),wins>losses?"win":losses>wins?"lose":"tie");
+  setBtns(true,false,false,false,false);
+}
+
 document.getElementById("deal").onclick=startDeal;
 document.getElementById("hit").onclick=doHit;
 document.getElementById("stand").onclick=doStand;
+document.getElementById("double").onclick=doDouble;
+document.getElementById("split").onclick=doSplit;
+
+/* ── Theme / brand swap ── */
+const brand    = document.getElementById("brand");
+const navLearn = document.getElementById("nav-learn");
+const navPlay  = document.getElementById("nav-play");
+
+function showLogo(theme){
+  document.querySelectorAll(".logo-name").forEach(l=>l.classList.remove("active"));
+  if(theme) document.getElementById("logo-"+theme).classList.add("active");
+  brand.classList.toggle("show-logo", !!theme);
+}
+
+navLearn.onclick=function(){
+  document.body.className="";
+  navLearn.classList.add("active");
+  navPlay.classList.remove("active");
+  showLogo(null);
+};
+
+document.querySelectorAll(".casino-item").forEach(btn=>{
+  btn.onclick=function(){
+    const theme=this.dataset.theme;
+    document.body.className="theme-"+theme;
+    navLearn.classList.remove("active");
+    navPlay.classList.add("active");
+    showLogo(theme);
+  };
+});
 </script>
 </body>
 </html>
