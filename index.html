@@ -2,32 +2,70 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><title>Blackjack</title>
+
+<!--
+  Montserrat 800 is used exclusively for the Aria casino wordmark.
+  All other text uses the system sans-serif stack.
+-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
-/* Theme tokens */
+/*
+  ═══════════════════════════════════════════
+  THEME TOKENS
+  ═══════════════════════════════════════════
+  Each casino theme overrides four CSS custom properties on <body>.
+  --primary       : main accent color (Deal button fill, active-hand border)
+  --primary-hover : darker shade for button hover state
+  --bg            : page background color
+  --active-hand   : border/glow on the currently active split hand
+
+  Default (Learn mode) uses a neutral near-black/off-white palette.
+  Adding a new theme is as simple as adding a new .theme-* rule here
+  and a matching data-theme button in the nav HTML.
+*/
 :root{--primary:#111;--primary-hover:#333;--bg:#f7f7f5;--active-hand:#111}
 .theme-aria    {--primary:#1E4A8C;--primary-hover:#163870;--bg:#e8eef8;--active-hand:#1E4A8C}
 .theme-bellagio{--primary:#B8962A;--primary-hover:#96780E;--bg:#faf9f2;--active-hand:#B8962A}
 .theme-wynn    {--primary:#B87478;--primary-hover:#985C60;--bg:#faf7f8;--active-hand:#B87478}
 
+/* Page shell — centered single-column layout */
 body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;color:#1a1a1a;transition:background .35s}
 .wrap{width:min(720px,96vw);display:flex;flex-direction:column;gap:28px;padding:20px}
 
-/* ── Header ── */
+
+/*
+  ═══════════════════════════════════════════
+  HEADER & BRAND SWAP
+  ═══════════════════════════════════════════
+  The header holds two things side-by-side: the brand area (left)
+  and the Learn / Play nav (right).
+
+  The brand area layers two absolutely-positioned elements on top of
+  each other inside a relatively-positioned container:
+    .brand-title  — the default "Blackjack" wordmark
+    .brand-logos  — the casino logo wordmarks (one visible at a time)
+
+  A visually-hidden .brand-sizer span (same text, visibility:hidden)
+  holds the container's width and height so the header never reflows
+  when the two layers swap.
+
+  Swap is triggered by adding .show-logo to #brand:
+    • .brand-title fades out and slides right  (opacity 0, translateX +14px)
+    • .brand-logos fades in  and slides to origin (opacity 1, translateX 0)
+*/
 header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e0e0;padding-bottom:16px}
 
-/* Brand swap */
 .brand{position:relative;display:flex;align-items:center;height:1.5rem}
 
 .brand-title{
   position:absolute;left:0;top:50%;transform:translateY(-50%);
   font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#111;
-  white-space:nowrap;
-  opacity:1;
+  white-space:nowrap;opacity:1;
   transition:opacity .3s ease,transform .3s ease;
 }
 .brand-logos{
@@ -37,7 +75,7 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
   white-space:nowrap;display:flex;align-items:center;
 }
 
-/* When a casino is active */
+/* Active state: title slides out right, logos slide in from left */
 .brand.show-logo .brand-title{
   opacity:0;transform:translateY(-50%) translateX(14px);pointer-events:none;
 }
@@ -45,7 +83,13 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
   opacity:1;transform:translateY(-50%) translateX(0);pointer-events:auto;
 }
 
-/* Individual logo wordmarks — only one is display:block at a time */
+/*
+  Individual casino wordmarks — only one carries .active at a time.
+  Each is styled to reflect its casino's brand personality:
+    Aria     — Montserrat 800, wide caps, sapphire blue
+    Bellagio — Georgia serif, tracked caps, antique gold
+    Wynn     — Palatino italic, airy spacing, rose gold
+*/
 .logo-name{display:none}
 .logo-name.active{display:inline-block}
 
@@ -62,21 +106,44 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
   color:#B87478;font-family:'Palatino Linotype',Palatino,Georgia,serif;font-style:italic;
 }
 
-/* Spacer so header doesn't collapse when brand-title is transparent */
+/* Invisible spacer that keeps .brand's dimensions stable during the swap */
 .brand-sizer{
   font-size:1.1rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   visibility:hidden;pointer-events:none;white-space:nowrap;
 }
 
-/* ── Nav ── */
+
+/*
+  ═══════════════════════════════════════════
+  LEARN / PLAY NAV
+  ═══════════════════════════════════════════
+  "Learn" resets to the default palette.
+  "Play ▾" reveals a hover dropdown listing the three casino themes.
+
+  The dropdown uses visibility + opacity (not display:none) so it can
+  fade in/out smoothly. padding-top on .casino-menu bridges the gap
+  between the trigger button and the menu card, keeping the hover
+  state alive as the cursor travels downward.
+*/
 .theme-nav{display:flex;align-items:center;gap:4px}
 .nav-sep{font-size:.65rem;color:#ddd;padding:0 2px;user-select:none}
 .nav-btn{background:none;border:none;font-family:inherit;font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#ccc;cursor:pointer;padding:5px 8px;border-radius:4px;transition:color .15s}
 .nav-btn:hover,.nav-btn.active{color:#111}
+
 .nav-play-wrap{position:relative}
-.casino-menu{visibility:hidden;opacity:0;pointer-events:none;position:absolute;top:100%;right:0;padding-top:8px;min-width:148px;z-index:100;transition:opacity .14s,visibility 0s .14s}
+
+/* Invisible padding bridges the gap so hover doesn't break mid-travel */
+.casino-menu{
+  visibility:hidden;opacity:0;pointer-events:none;
+  position:absolute;top:100%;right:0;
+  padding-top:8px;
+  min-width:148px;z-index:100;
+  transition:opacity .14s,visibility 0s .14s;
+}
 .casino-menu-inner{background:#fff;border:1px solid #ebebeb;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.09);padding:5px}
 .nav-play-wrap:hover .casino-menu{visibility:visible;opacity:1;pointer-events:auto;transition:opacity .14s,visibility 0s}
+
+/* Each casino row: colored dot + name */
 .casino-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;background:none;border:none;font-family:inherit;font-size:.68rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#555;cursor:pointer;border-radius:5px;transition:background .12s,color .12s;text-align:left}
 .casino-item:hover{background:#f5f5f5;color:#111}
 .casino-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
@@ -84,11 +151,29 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
 .dot-bellagio{background:#B8962A}
 .dot-wynn{background:#B87478}
 
-/* ── Game layout ── */
+
+/*
+  ═══════════════════════════════════════════
+  GAME TABLE LAYOUT
+  ═══════════════════════════════════════════
+  Two .zone sections stack vertically: Dealer on top, Player on bottom,
+  separated by a thin .divider and the result .msg banner.
+
+  Each zone has a .label row (section name + live score badge)
+  and a .hand row (the rendered card elements).
+*/
 .zone{display:flex;flex-direction:column;gap:12px}
 .label{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#bbb;display:flex;align-items:center;gap:10px}
 .score-badge{font-size:.9rem;color:#111;font-weight:700;letter-spacing:0}
 .hand{display:flex;flex-wrap:wrap;gap:8px;min-height:108px;align-items:flex-start}
+
+/*
+  CARD
+  Each card is a 66×98px grid with three rows: top-left rank/suit,
+  center suit symbol, bottom-right rank/suit (rotated 180°).
+  Face-down cards get a plain gray fill with no content rendered.
+  The deal animation drops cards in from slightly above.
+*/
 .card{width:66px;height:98px;border-radius:6px;background:#fff;border:1px solid #e8e8e8;box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);display:grid;grid-template-rows:auto 1fr auto;padding:6px;animation:deal .18s ease-out;flex-shrink:0}
 @keyframes deal{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 .c-top{font-size:.75rem;font-weight:700;line-height:1.1;display:flex;flex-direction:column}
@@ -97,17 +182,202 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
 .red{color:#d93025}.black{color:#111}
 .face-down{background:#f0f0ee;border:1px solid #e0e0e0;box-shadow:none}
 
+/*
+  SPLIT HANDS
+  #split-area is hidden by default and shown as a flex row when the
+  player splits. Each hand gets its own .split-hand-wrap card panel.
+  The currently active hand is highlighted with the theme accent color
+  via --active-hand (border + 1px inset box-shadow for crispness).
+*/
 #split-area{display:none;gap:14px}
 .split-hand-wrap{flex:1;border:1px solid #e8e8e8;border-radius:8px;padding:12px;background:#fff;transition:border-color .2s,box-shadow .2s}
 .split-hand-wrap.active-hand{border-color:var(--active-hand);box-shadow:0 0 0 1px var(--active-hand)}
 .split-label{margin-bottom:8px}
 
+/* Result message banner — swaps class for win / lose / tie styling */
 .divider{height:1px;background:#e8e8e8}
+
+/*
+  BET AREA
+  Centered card with a rounded border. Left column holds the bet
+  amount + Clear; right column holds the chip row. "BET (MIN $25)"
+  sits as a header above both. Chips and Clear are disabled mid-hand.
+*/
+.bet-area{
+  display:flex;flex-direction:column;gap:14px;
+  border:1px solid #e4e4e4;border-radius:16px;
+  padding:20px 28px;margin:0 auto;width:fit-content;
+  background:#fff;
+}
+.bet-label{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#bbb}
+.bet-min{font-size:.65rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#ccc}
+/* Row: bet amount+clear on the left, chips on the right */
+.bet-body{display:flex;align-items:center;gap:28px}
+.bet-left{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.bet-amount{font-size:1.7rem;font-weight:700;color:#111;letter-spacing:.01em;white-space:nowrap}
+.btn-clear{font-size:.63rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#bbb;background:none;border:1px solid #e8e8e8;border-radius:4px;padding:4px 10px;cursor:pointer;font-family:inherit;transition:border-color .12s,color .12s}
+.btn-clear:hover:not(:disabled){border-color:#ccc;color:#888}
+.btn-clear:disabled{opacity:.3;cursor:not-allowed}
+
+/*
+  CHIPS
+  Each chip uses a CSS variable --chip-color as its base fill.
+  A radial gradient adds a top-left sheen, and layered box-shadows
+  create the raised edge + drop shadow. A ::before ring mimics the
+  classic inner dashed inlay. Colors swap per casino theme below.
+*/
+.chips{display:flex;gap:14px;align-items:center}
+.chip{
+  width:68px;height:68px;border-radius:50%;
+  border:none;position:relative;
+  font-size:.72rem;font-weight:800;letter-spacing:.02em;
+  color:rgba(255,255,255,.96);
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+  cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  /* surface gradient: bright spot top-left → base color */
+  background:
+    radial-gradient(circle at 36% 32%, rgba(255,255,255,.3) 0%, rgba(255,255,255,.0) 58%),
+    var(--chip-color,#888);
+  /* layered shadows: outer edge ring, drop shadow, inner top-highlight, inner bottom-shadow */
+  box-shadow:
+    0 0 0 4px rgba(0,0,0,.22),
+    0 5px 12px rgba(0,0,0,.35),
+    0 10px 28px rgba(0,0,0,.12),
+    inset 0 2px 4px rgba(255,255,255,.28),
+    inset 0 -3px 5px rgba(0,0,0,.22);
+  transition:transform .13s ease,box-shadow .13s ease;
+}
+/* Inner dashed inlay ring — classic casino chip detail */
+.chip::before{
+  content:'';position:absolute;inset:8px;border-radius:50%;
+  border:2px dashed rgba(255,255,255,.32);pointer-events:none;
+}
+.chip:hover:not(:disabled){
+  transform:translateY(-5px) scale(1.07);
+  box-shadow:
+    0 0 0 4px rgba(0,0,0,.22),
+    0 10px 24px rgba(0,0,0,.4),
+    0 18px 40px rgba(0,0,0,.14),
+    inset 0 2px 4px rgba(255,255,255,.28),
+    inset 0 -3px 5px rgba(0,0,0,.22);
+}
+.chip:active:not(:disabled){transform:translateY(-2px) scale(1.03)}
+.chip:disabled{opacity:.32;cursor:not-allowed;transform:none;filter:grayscale(.4)}
+
+/* ── Default (Learn) — classic casino denomination colors ── */
+.chip-5  {--chip-color:#B83232}  /* red    */
+.chip-25 {--chip-color:#27935A}  /* green  */
+.chip-100{--chip-color:#1E2A3A}  /* black  */
+
+/* ── Aria — sapphire blue tones ── */
+.theme-aria .chip-5  {--chip-color:#5B88C8}
+.theme-aria .chip-25 {--chip-color:#1E4A8C}
+.theme-aria .chip-100{--chip-color:#142F60}
+
+/* ── Bellagio — royal gold tones (bright, saturated, no brown) ── */
+.theme-bellagio .chip-5  {--chip-color:#F0C840}
+.theme-bellagio .chip-25 {--chip-color:#D4A010}
+.theme-bellagio .chip-100{--chip-color:#8A6408}
+
+/* ── Wynn — rose gold tones ── */
+.theme-wynn .chip-5  {--chip-color:#D4A0A4}
+.theme-wynn .chip-25 {--chip-color:#B87478}
+.theme-wynn .chip-100{--chip-color:#7A4A4E}
+
+/* Wallet bar — sits below the bet area, left-aligned */
+.wallet-bar{display:flex;justify-content:flex-start;align-items:center;gap:10px;padding-top:4px;border-top:1px solid #e8e8e8}
+.wallet-label{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#bbb}
+.wallet-amount{font-size:1.4rem;font-weight:700;color:#4a8c5c;letter-spacing:.01em}
 .msg{text-align:center;font-size:.95rem;font-weight:600;letter-spacing:.06em;padding:12px;display:none;border-radius:4px}
 .msg.show{display:block}
 .win{color:#1a7a4a;background:#f0faf4}
 .lose{color:#b0291a;background:#fdf4f3}
 .tie{color:#888;background:#f5f5f5}
+
+/*
+  COIN ANIMATION
+  Gold coins fly from the bet display to the wallet on a win.
+  Each coin is position:fixed so viewport-relative coords work directly.
+  --dx / --dy are set per-coin in JS based on measured element positions.
+*/
+.coin{
+  position:fixed;width:22px;height:22px;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%, #FFE566 0%, #D4A010 52%, #A07008 100%);
+  border:1.5px solid rgba(180,130,0,.45);
+  box-shadow:0 2px 6px rgba(0,0,0,.28),inset 0 1px 3px rgba(255,240,100,.65);
+  z-index:9999;pointer-events:none;
+  animation:coin-fly .72s ease-in forwards;
+}
+@keyframes coin-fly{
+  0%  {opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}
+  35% {opacity:1;transform:translate(calc(var(--dx)*.35),calc(var(--dy)*.35 - 55px)) scale(.88) rotate(210deg)}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.28) rotate(620deg)}
+}
+
+/* Wallet amount pulses green when the last coin lands */
+@keyframes wallet-pulse{
+  0%  {transform:scale(1)}
+  45% {transform:scale(1.18);color:#2a7a3c}
+  100%{transform:scale(1);color:#4a8c5c}
+}
+.wallet-ping{animation:wallet-pulse .38s ease-out forwards}
+
+/*
+  BLACKJACK SPECIAL ANIMATION
+  Three layers: a dramatic golden banner that scales in and fades,
+  diamond sparkles that burst outward from the card area, and a
+  golden glow that pulses on the player's cards.
+*/
+
+/* "BLACKJACK!" banner — scales up from the hand, holds, then fades */
+.bj-banner{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0.2);
+  font-size:3.8rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  font-family:'Montserrat',-apple-system,sans-serif;
+  color:#F0C840;
+  text-shadow:0 0 40px rgba(240,200,64,.7),0 0 80px rgba(240,200,64,.3),0 3px 6px rgba(0,0,0,.5);
+  z-index:9998;pointer-events:none;
+  animation:bj-banner 2s cubic-bezier(.22,.68,0,1.2) forwards;
+  white-space:nowrap;
+}
+@keyframes bj-banner{
+  0%  {opacity:0;transform:translate(-50%,-50%) scale(0.2)}
+  18% {opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+  28% {opacity:1;transform:translate(-50%,-50%) scale(1.0)}
+  72% {opacity:1;transform:translate(-50%,-50%) scale(1.0)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}
+}
+
+/* Diamond sparkle particles */
+.sparkle{
+  position:fixed;
+  width:10px;height:10px;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+  z-index:9997;pointer-events:none;
+  animation:sparkle-out var(--dur,.9s) ease-out var(--delay,0s) forwards;
+}
+@keyframes sparkle-out{
+  0%  {opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}
+  100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0) rotate(var(--rot,360deg))}
+}
+
+/* Golden glow pulse on the player's cards */
+@keyframes card-glow{
+  0%  {box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04)}
+  50% {box-shadow:0 0 0 3px rgba(240,200,64,.6),0 0 28px rgba(240,200,64,.45),0 4px 12px rgba(0,0,0,.08)}
+  100%{box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04)}
+}
+.card-glow{animation:card-glow .9s ease-in-out 2}
+
+/*
+  ACTION BUTTONS
+  Deal fills with --primary so it automatically picks up the casino
+  theme color. Hit/Stand/Double/Split keep fixed semantic colors
+  (green / red / blue / purple) so their meaning stays clear
+  regardless of which theme is active.
+*/
 .controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
 .btn{border:1px solid #e0e0e0;border-radius:4px;padding:11px 22px;font-size:.78rem;font-family:inherit;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:600;background:#fff;color:#333;transition:background .12s,border-color .12s,color .12s}
 .btn:hover:not(:disabled){background:#f5f5f5;border-color:#ccc}
@@ -126,13 +396,20 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
 </head>
 <body>
 <div class="wrap">
+
+  <!-- ═══ HEADER ═══════════════════════════════════════════════════ -->
   <header>
+
+    <!--
+      Brand area. Three children:
+        1. .brand-sizer  — invisible text that holds the container size
+        2. .brand-title  — visible "Blackjack" wordmark (default state)
+        3. .brand-logos  — casino wordmarks (shown when a theme is active)
+      JS toggles .show-logo on #brand to swap between states.
+    -->
     <div class="brand" id="brand">
-      <!-- invisible sizer keeps the header height stable -->
       <span class="brand-sizer">Blackjack</span>
-      <!-- visible title -->
       <span class="brand-title">Blackjack</span>
-      <!-- casino logos (one becomes .active at a time) -->
       <div class="brand-logos">
         <span class="logo-name logo-aria"     id="logo-aria">Aria</span>
         <span class="logo-name logo-bellagio" id="logo-bellagio">Bellagio</span>
@@ -140,6 +417,11 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
       </div>
     </div>
 
+    <!--
+      Theme nav. "Learn" resets to default. "Play ▾" reveals a hover
+      dropdown; each .casino-item carries data-theme matching the CSS
+      theme class suffix (e.g. data-theme="aria" → .theme-aria).
+    -->
     <nav class="theme-nav">
       <button class="nav-btn active" id="nav-learn">Learn</button>
       <span class="nav-sep">|</span>
@@ -162,15 +444,30 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
     </nav>
   </header>
 
+  <!-- ═══ DEALER ZONE ══════════════════════════════════════════════ -->
   <div class="zone">
+    <!-- #ds is updated with the dealer's visible score; hidden while hole card is face-down -->
     <div class="label">Dealer <span id="ds" class="score-badge"></span></div>
     <div id="dh" class="hand"></div>
   </div>
+
   <div class="divider"></div>
+
+  <!-- Result banner: hidden until a hand resolves; class swaps to .win/.lose/.tie -->
   <div id="msg" class="msg"></div>
+
+  <!-- ═══ PLAYER ZONE ══════════════════════════════════════════════ -->
   <div class="zone">
     <div class="label">Player <span id="ps" class="score-badge"></span></div>
+
+    <!-- #ph is the normal single-hand container; hidden during split mode -->
     <div id="ph" class="hand"></div>
+
+    <!--
+      #split-area is shown (display:flex) when the player splits.
+      Each child panel represents one of the two split hands.
+      The active hand gets the .active-hand class for the accent border.
+    -->
     <div id="split-area">
       <div class="split-hand-wrap" id="swrap0">
         <div class="label split-label">Hand 1 <span id="ss0" class="score-badge"></span></div>
@@ -182,6 +479,29 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
       </div>
     </div>
   </div>
+
+  <!-- ═══ BET AREA ════════════════════════════════════════════════ -->
+  <!--
+    Rounded card centered above the action buttons.
+    Left: bet amount + Clear. Right: chip row.
+    Chips and Clear lock during a live hand.
+  -->
+  <div class="bet-area" id="bet-area">
+    <span class="bet-label">Bet <span class="bet-min">(Min $25)</span></span>
+    <div class="bet-body">
+      <div class="bet-left">
+        <span class="bet-amount" id="bet-display">$25</span>
+        <button class="btn-clear" id="clear-bet">Reset</button>
+      </div>
+      <div class="chips">
+        <button class="chip chip-5"   data-value="5">$5</button>
+        <button class="chip chip-25"  data-value="25">$25</button>
+        <button class="chip chip-100" data-value="100">$100</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ACTION BUTTONS ═══════════════════════════════════════════ -->
   <div class="controls">
     <button class="btn btn-deal"   id="deal">Deal</button>
     <button class="btn btn-hit"    id="hit"    disabled>Hit</button>
@@ -189,106 +509,446 @@ header{display:flex;align-items:center;justify-content:space-between;border-bott
     <button class="btn btn-double" id="double" disabled>Double</button>
     <button class="btn btn-split"  id="split"  disabled>Split</button>
   </div>
-</div>
+
+  <!-- ═══ WALLET ════════════════════════════════════════════════════ -->
+  <div class="wallet-bar">
+    <span class="wallet-label">Wallet</span>
+    <span class="wallet-amount" id="wallet-display">$1,000</span>
+  </div>
+
+</div><!-- /.wrap -->
+
 <script>
-/* ── Game logic ── */
-const SUITS=["Hearts","Diamonds","Clubs","Spades"],RANKS=["2","3","4","5","6","7","8","9","10","J","Q","K","A"],SYM={Hearts:"♥",Diamonds:"♦",Clubs:"♣",Spades:"♠"},RED=new Set(["Hearts","Diamonds"]);
-let deck=[],player=[],dealer=[],splitMode=false,splitAces=false,activeHand=0,hands=[[],[]];
+/*
+  ═══════════════════════════════════════════════════════════════════
+  CONSTANTS & STATE
+  ═══════════════════════════════════════════════════════════════════
+  A standard 52-card deck is rebuilt and shuffled fresh on every deal.
+  Cards are plain objects: { r: rank, s: suit }.
 
-function buildDeck(){const d=[];for(const s of SUITS)for(const r of RANKS)d.push({r,s});for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
-function cval(c){if(["J","Q","K"].includes(c.r))return 10;if(c.r==="A")return 11;return+c.r;}
-function hval(h){let t=h.reduce((s,c)=>s+cval(c),0),a=h.filter(c=>c.r==="A").length;while(t>21&&a){t-=10;a--;}return t;}
-function canSplit(){return player.length===2&&cval(player[0])===cval(player[1]);}
+  State variables:
+    deck        — remaining cards in the shoe
+    player      — player's main hand (array of card objects)
+    dealer      — dealer's hand
+    splitMode   — true while the player is playing split hands
+    splitAces   — true when the split was on Aces (restricts to one card per hand)
+    activeHand  — index (0 or 1) of the split hand currently being played
+    hands       — the two split hands: hands[0] and hands[1]
+    wallet      — player's current cash balance in whole dollars
+*/
+const SUITS = ["Hearts","Diamonds","Clubs","Spades"];
+const RANKS = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+const SYM   = {Hearts:"♥", Diamonds:"♦", Clubs:"♣", Spades:"♠"};
+const RED   = new Set(["Hearts","Diamonds"]);
 
-function makeCard(c,down=false){
-  const el=document.createElement("div");el.className="card"+(down?" face-down":"");
-  if(!down){el.classList.add(RED.has(c.s)?"red":"black");el.innerHTML=`<div class="c-top"><span>${c.r}</span><span>${SYM[c.s]}</span></div><div class="c-mid">${SYM[c.s]}</div><div class="c-bot"><span>${c.r}</span><span>${SYM[c.s]}</span></div>`;}
+let deck=[], player=[], dealer=[], splitMode=false, splitAces=false, activeHand=0, hands=[[],[]];
+let wallet=1000;  // player's cash balance
+let bet=25;       // pending bet (before deal) — starts at the $25 minimum
+let currentBet=0; // bet locked in for the active hand (may be doubled)
+let splitBet=0;   // bet per split hand (= original bet, tracked separately for payouts)
+
+/* Re-render the wallet display. Formats as whole-dollar USD with comma separator. */
+function renderWallet(){
+  document.getElementById("wallet-display").textContent=
+    "$"+wallet.toLocaleString("en-US",{maximumFractionDigits:0});
+}
+
+/* Re-render the pending bet amount. */
+function renderBet(){
+  document.getElementById("bet-display").textContent=
+    "$"+bet.toLocaleString("en-US",{maximumFractionDigits:0});
+}
+
+/*
+  Animate gold coins flying from the bet display to the wallet display.
+  Creates N coins at staggered intervals, each following a slight arc.
+  The wallet amount pulses green when the last coin arrives.
+*/
+function animateWinCoins(N=8){
+  const src=document.getElementById("bet-display").getBoundingClientRect();
+  const dst=document.getElementById("wallet-display").getBoundingClientRect();
+  const sx=src.left+src.width/2,  sy=src.top+src.height/2;
+  const dx=(dst.left+dst.width/2)-sx, dy=(dst.top+dst.height/2)-sy;
+
+  for(let i=0;i<N;i++){
+    const coin=document.createElement("div");
+    coin.className="coin";
+    // Scatter start position slightly around the bet display
+    coin.style.left=(sx+Math.random()*18-9)+"px";
+    coin.style.top =(sy+Math.random()*12-6)+"px";
+    // Vary end position slightly and arc height
+    coin.style.setProperty("--dx",(dx+Math.random()*16-8)+"px");
+    coin.style.setProperty("--dy",dy+"px");
+    coin.style.animationDelay=(i*65)+"ms";
+    coin.style.animationDuration=(.62+Math.random()*.18)+"s";
+    document.body.appendChild(coin);
+
+    coin.addEventListener("animationend",()=>{
+      coin.remove();
+      // Pulse the wallet display when the last coin lands
+      if(i===N-1){
+        const w=document.getElementById("wallet-display");
+        w.classList.remove("wallet-ping");
+        void w.offsetWidth; // force reflow so re-adding the class re-triggers
+        w.classList.add("wallet-ping");
+        w.addEventListener("animationend",()=>w.classList.remove("wallet-ping"),{once:true});
+      }
+    });
+  }
+}
+
+/*
+  Full blackjack celebration:
+    1. Giant "BLACKJACK!" banner scales in and holds center screen.
+    2. Diamond sparkles burst outward from the player's hand area.
+    3. Player cards pulse with a golden glow.
+    4. Extra coins (14) flow to the wallet after a short delay.
+*/
+function animateBlackjack(){
+  // 1 — Banner
+  const banner=document.createElement("div");
+  banner.className="bj-banner";
+  banner.textContent="Blackjack!";
+  document.body.appendChild(banner);
+  banner.addEventListener("animationend",()=>banner.remove());
+
+  // 2 — Sparkle burst from the player hand area
+  const hand=document.getElementById("ph").getBoundingClientRect();
+  const cx=hand.left+hand.width/2, cy=hand.top+hand.height/2;
+  const colors=["#FFE566","#fff","#F0C840","#ffe","#FFD700"];
+  for(let i=0;i<28;i++){
+    const sp=document.createElement("div");
+    sp.className="sparkle";
+    const angle=(i/28)*Math.PI*2+Math.random()*.4;
+    const dist=60+Math.random()*160;
+    sp.style.left=cx+"px"; sp.style.top=cy+"px";
+    sp.style.setProperty("--sx",Math.cos(angle)*dist+"px");
+    sp.style.setProperty("--sy",Math.sin(angle)*dist+"px");
+    sp.style.setProperty("--rot",(Math.random()*720-360)+"deg");
+    sp.style.setProperty("--dur",(.55+Math.random()*.65)+"s");
+    sp.style.setProperty("--delay",(Math.random()*.3)+"s");
+    sp.style.width=sp.style.height=(6+Math.random()*10)+"px";
+    sp.style.background=colors[Math.floor(Math.random()*colors.length)];
+    document.body.appendChild(sp);
+    sp.addEventListener("animationend",()=>sp.remove());
+  }
+
+  // 3 — Card glow
+  document.querySelectorAll("#ph .card").forEach(c=>{
+    c.classList.add("card-glow");
+    c.addEventListener("animationend",()=>c.classList.remove("card-glow"),{once:true});
+  });
+
+  // 4 — More coins, delayed so they follow the banner
+  setTimeout(()=>animateWinCoins(14), 400);
+}
+
+/*
+  Enable or disable chips and the Clear button.
+  Called with false when a hand starts, true when it ends.
+*/
+function setChipsEnabled(enabled){
+  document.querySelectorAll(".chip").forEach(c=>c.disabled=!enabled);
+  document.getElementById("clear-bet").disabled=!enabled;
+}
+
+/*
+  Keep the Deal button in sync with the current bet.
+  Blocked when: no hand is in progress AND (bet < 25 or bet > wallet).
+  The in-hand blocking is still handled by setBtns().
+*/
+function syncDealBtn(){
+  document.getElementById("deal").disabled = bet<25 || bet>wallet;
+}
+
+
+/*
+  ═══════════════════════════════════════════════════════════════════
+  DECK & HAND UTILITIES
+  ═══════════════════════════════════════════════════════════════════
+*/
+
+/* Build a shuffled 52-card deck (Fisher-Yates shuffle). */
+function buildDeck(){
+  const d=[];
+  for(const s of SUITS) for(const r of RANKS) d.push({r,s});
+  for(let i=d.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [d[i],d[j]]=[d[j],d[i]];
+  }
+  return d;
+}
+
+/* Return the point value of a single card. Aces start at 11. */
+function cval(c){
+  if(["J","Q","K"].includes(c.r)) return 10;
+  if(c.r==="A") return 11;
+  return +c.r;
+}
+
+/*
+  Return the best total for a hand.
+  Aces are reduced from 11 → 1 one at a time until the total ≤ 21
+  or there are no more soft aces to reduce.
+*/
+function hval(h){
+  let t=h.reduce((s,c)=>s+cval(c),0);
+  let a=h.filter(c=>c.r==="A").length;
+  while(t>21&&a){ t-=10; a--; }
+  return t;
+}
+
+/* Split is available only when both cards share the exact same rank (e.g. K+K, not K+Q). */
+function canSplit(){
+  return player.length===2 && player[0].r===player[1].r;
+}
+
+
+/*
+  ═══════════════════════════════════════════════════════════════════
+  RENDERING HELPERS
+  ═══════════════════════════════════════════════════════════════════
+*/
+
+/*
+  Build a card DOM element.
+  When down=true the card is rendered face-down (gray back, no content).
+  The three-row grid layout mirrors a real card: rank+suit top-left,
+  large suit centre, rank+suit bottom-right (rotated 180°).
+*/
+function makeCard(c, down=false){
+  const el=document.createElement("div");
+  el.className="card"+(down?" face-down":"");
+  if(!down){
+    el.classList.add(RED.has(c.s)?"red":"black");
+    el.innerHTML=`<div class="c-top"><span>${c.r}</span><span>${SYM[c.s]}</span></div>`
+                +`<div class="c-mid">${SYM[c.s]}</div>`
+                +`<div class="c-bot"><span>${c.r}</span><span>${SYM[c.s]}</span></div>`;
+  }
   return el;
 }
-function renderHand(id,hand,hide=false){const el=document.getElementById(id);el.innerHTML="";hand.forEach((c,i)=>el.appendChild(makeCard(c,hide&&i===1)));}
-function setScore(id,hand,hide=false){document.getElementById(id).textContent=hide?"":hval(hand);}
-function showMsg(txt,type){const m=document.getElementById("msg");m.textContent=txt;m.className="msg show "+type;}
-function hideMsg(){document.getElementById("msg").className="msg";}
-function setBtns(d,h,s,dbl,spl){
-  document.getElementById("deal").disabled=!d;
-  document.getElementById("hit").disabled=!h;
-  document.getElementById("stand").disabled=!s;
-  document.getElementById("double").disabled=!dbl;
-  document.getElementById("split").disabled=!spl;
+
+/* Re-render all cards in a hand container. hide=true keeps the second card face-down (dealer hole card). */
+function renderHand(id, hand, hide=false){
+  const el=document.getElementById(id);
+  el.innerHTML="";
+  hand.forEach((c,i)=>el.appendChild(makeCard(c, hide&&i===1)));
 }
 
+/* Update a score badge element. hide=true blanks it (used while dealer hole card is hidden). */
+function setScore(id, hand, hide=false){
+  document.getElementById(id).textContent = hide ? "" : hval(hand);
+}
+
+/* Show the result banner with a message and a semantic class (win/lose/tie). */
+function showMsg(txt, type){
+  const m=document.getElementById("msg");
+  m.textContent=txt;
+  m.className="msg show "+type;
+}
+
+function hideMsg(){
+  document.getElementById("msg").className="msg";
+}
+
+/*
+  Enable/disable all five action buttons in one call.
+  Parameter order: Deal, Hit, Stand, Double, Split.
+  Pass true to enable, false to disable.
+*/
+function setBtns(d,h,s,dbl,spl){
+  document.getElementById("deal").disabled   = !d;
+  document.getElementById("hit").disabled    = !h;
+  document.getElementById("stand").disabled  = !s;
+  document.getElementById("double").disabled = !dbl;
+  document.getElementById("split").disabled  = !spl;
+}
+
+
+/*
+  ═══════════════════════════════════════════════════════════════════
+  SPLIT UI HELPERS
+  ═══════════════════════════════════════════════════════════════════
+*/
+
+/* Reset all split-related state and restore the single-hand view. */
 function resetSplitUI(){
-  splitMode=false;splitAces=false;activeHand=0;hands=[[],[]];
+  splitMode=false; splitAces=false; activeHand=0; hands=[[],[]];
   document.getElementById("ph").style.display="";
   document.getElementById("split-area").style.display="none";
   document.getElementById("swrap0").classList.remove("active-hand");
   document.getElementById("swrap1").classList.remove("active-hand");
 }
 
+
+/*
+  ═══════════════════════════════════════════════════════════════════
+  GAME FLOW
+  ═══════════════════════════════════════════════════════════════════
+*/
+
+/*
+  Deal — shuffle a new deck, deal two cards each, check for immediate blackjack.
+  If either side has blackjack the hand resolves immediately without player action.
+  Otherwise enable Hit / Stand / Double / Split (Split only if cards match).
+*/
 function startDeal(){
   resetSplitUI();
-  deck=buildDeck();player=[deck.pop(),deck.pop()];dealer=[deck.pop(),deck.pop()];
-  hideMsg();renderHand("dh",dealer,true);renderHand("ph",player);setScore("ds",dealer,true);setScore("ps",player);
-  const pb=hval(player)===21,db=hval(dealer)===21;
+
+  // Lock in the bet for this hand and deduct it from the wallet
+  currentBet=bet;
+  wallet-=currentBet;
+  renderWallet();
+  setChipsEnabled(false); // chips locked while hand is live
+
+  deck=buildDeck();
+  player=[deck.pop(),deck.pop()];
+  dealer=[deck.pop(),deck.pop()];
+
+  hideMsg();
+  renderHand("dh",dealer,true);  // dealer's second card starts face-down
+  renderHand("ph",player);
+  setScore("ds",dealer,true);    // hide dealer score while hole card is down
+  setScore("ps",player);
+
+  const pb=hval(player)===21, db=hval(dealer)===21;
   if(pb||db){
-    renderHand("dh",dealer);setScore("ds",dealer);
-    if(pb&&db)showMsg("Both Blackjack — Tie","tie");
-    else if(pb)showMsg("Blackjack — You Win","win");
-    else showMsg("Dealer Blackjack — You Lose","lose");
-    setBtns(true,false,false,false,false);return;
+    // Reveal hole card before showing result
+    renderHand("dh",dealer); setScore("ds",dealer);
+    if(pb&&db){
+      showMsg("Both Blackjack — Tie","tie");
+      wallet+=currentBet; // push — return bet
+    } else if(pb){
+      showMsg("Blackjack — You Win","win");
+      wallet+=Math.floor(currentBet*2.5); // 3:2 blackjack payout
+      animateBlackjack();
+    } else {
+      showMsg("Dealer Blackjack — You Lose","lose");
+    }
+    renderWallet();
+    setChipsEnabled(true);
+    syncDealBtn();
+    setBtns(true,false,false,false,false);
+    return;
   }
+
   setBtns(false,true,true,true,canSplit());
 }
 
+/*
+  Hit — draw one card.
+  In split mode: adds to the active split hand; auto-advances on 21 or bust.
+  Normal mode: busts end the hand; hitting 21 auto-stands.
+  Double is no longer available after the first hit (only valid on two cards).
+*/
 function doHit(){
   if(splitMode){
     hands[activeHand].push(deck.pop());
-    renderHand("sh"+activeHand,hands[activeHand]);
+    renderHand("sh"+activeHand, hands[activeHand]);
     document.getElementById("ss"+activeHand).textContent=hval(hands[activeHand]);
-    if(hval(hands[activeHand])>=21)advanceSplitHand();
+    if(hval(hands[activeHand])>=21) advanceSplitHand();
   } else {
-    player.push(deck.pop());renderHand("ph",player);setScore("ps",player);
+    player.push(deck.pop());
+    renderHand("ph",player);
+    setScore("ps",player);
     const t=hval(player);
-    if(t>21){renderHand("dh",dealer);setScore("ds",dealer);showMsg("Bust — You Lose","lose");setBtns(true,false,false,false,false);}
-    else if(t===21)doStand();
-    else setBtns(false,true,true,false,false);
+    if(t>21){
+      renderHand("dh",dealer); setScore("ds",dealer);
+      showMsg("Bust — You Lose","lose");
+      setBtns(true,false,false,false,false);
+    } else if(t===21){
+      doStand(); // automatically stand on 21
+    } else {
+      setBtns(false,true,true,false,false); // double no longer available
+    }
   }
 }
 
+/*
+  Stand — end the current hand's action.
+  In split mode: advances to the next hand (or kicks off the dealer turn).
+  Normal mode: immediately runs the dealer turn.
+*/
 function doStand(){
-  if(splitMode){advanceSplitHand();}
-  else{setBtns(false,false,false,false,false);runDealerTurn(resolve);}
+  if(splitMode){ advanceSplitHand(); }
+  else{ setBtns(false,false,false,false,false); runDealerTurn(resolve); }
 }
 
+/*
+  Double Down — double the implicit bet, take exactly one more card, then stand.
+  Available on any two-card hand, including after splitting (but not after Aces split).
+  In split mode: deals one card to the active hand then advances without further action.
+*/
 function doDouble(){
   if(splitMode){
     hands[activeHand].push(deck.pop());
-    renderHand("sh"+activeHand,hands[activeHand]);
+    renderHand("sh"+activeHand, hands[activeHand]);
     document.getElementById("ss"+activeHand).textContent=hval(hands[activeHand]);
     advanceSplitHand();
   } else {
-    player.push(deck.pop());renderHand("ph",player);setScore("ps",player);
+    // Deduct the matching bet, then double currentBet for payout
+    wallet-=currentBet;
+    currentBet*=2;
+    renderWallet();
+    player.push(deck.pop());
+    renderHand("ph",player);
+    setScore("ps",player);
     setBtns(false,false,false,false,false);
-    if(hval(player)>21){renderHand("dh",dealer);setScore("ds",dealer);showMsg("Doubled — Bust. You Lose.","lose");setBtns(true,false,false,false,false);return;}
+    if(hval(player)>21){
+      renderHand("dh",dealer); setScore("ds",dealer);
+      showMsg("Doubled — Bust. You Lose.","lose");
+      setChipsEnabled(true); syncDealBtn();
+      setBtns(true,false,false,false,false);
+      return;
+    }
     runDealerTurn(resolve);
   }
 }
 
+/*
+  Split — separate the two matching cards into independent hands,
+  deal one card to each, then play them left-to-right.
+
+  Special Aces rule: when splitting Aces the player receives exactly
+  one card per hand with no further action. The dealer plays immediately
+  after both Ace hands are dealt.
+*/
 function doSplit(){
-  splitMode=true;splitAces=player[0].r==="A";
+  splitMode=true;
+  splitAces=(player[0].r==="A");
+  splitBet=bet; // each hand plays for the original bet amount
+
+  // Deduct the second hand's bet from wallet
+  wallet-=splitBet;
+  renderWallet();
+
+  // Separate the pair and deal one card to each hand
   hands=[[player[0]],[player[1]]];
-  hands[0].push(deck.pop());hands[1].push(deck.pop());
+  hands[0].push(deck.pop());
+  hands[1].push(deck.pop());
   activeHand=0;
+
+  // Swap the single-hand view for the split-hand panels
   document.getElementById("ph").style.display="none";
   document.getElementById("split-area").style.display="flex";
-  renderHand("sh0",hands[0]);renderHand("sh1",hands[1]);
+  renderHand("sh0",hands[0]); renderHand("sh1",hands[1]);
   document.getElementById("ss0").textContent=hval(hands[0]);
   document.getElementById("ss1").textContent=hval(hands[1]);
   document.getElementById("swrap0").classList.add("active-hand");
-  if(splitAces){setBtns(false,false,false,false,false);runDealerTurn(resolveSplit);}
-  else{setBtns(false,true,true,true,false);}
+
+  if(splitAces){
+    // Aces split: no player action — go straight to dealer
+    setBtns(false,false,false,false,false);
+    runDealerTurn(resolveSplit);
+  } else {
+    setBtns(false,true,true,true,false);
+  }
 }
 
+/*
+  Move play to the next split hand, or — when both hands are done —
+  run the dealer turn and resolve all results.
+*/
 function advanceSplitHand(){
   if(activeHand===0){
     activeHand=1;
@@ -301,47 +961,133 @@ function advanceSplitHand(){
   }
 }
 
+/*
+  Dealer turn — reveal the hole card, then draw until reaching 17+.
+  Calls callback() once the dealer is done (resolve or resolveSplit).
+  Uses setTimeout so each draw is animated with a brief delay.
+*/
 function runDealerTurn(callback){
-  renderHand("dh",dealer);setScore("ds",dealer);
-  function step(){if(hval(dealer)<17){dealer.push(deck.pop());renderHand("dh",dealer);setScore("ds",dealer);setTimeout(step,380);}else callback();}
+  renderHand("dh",dealer); setScore("ds",dealer); // flip hole card
+  function step(){
+    if(hval(dealer)<17){
+      dealer.push(deck.pop());
+      renderHand("dh",dealer);
+      setScore("ds",dealer);
+      setTimeout(step,380);
+    } else {
+      callback();
+    }
+  }
   step();
 }
 
+/*
+  Resolve a normal (non-split) hand against the dealer.
+  Compares totals and shows the appropriate result banner.
+*/
 function resolve(){
-  const p=hval(player),d=hval(dealer);
-  if(d>21)showMsg("Dealer Busts — You Win","win");
-  else if(p>d)showMsg("You Win","win");
-  else if(p<d)showMsg("You Lose","lose");
-  else showMsg("Tie","tie");
+  const p=hval(player), d=hval(dealer);
+  if(d>21||p>d){
+    showMsg(d>21?"Dealer Busts — You Win":"You Win","win");
+    wallet+=currentBet*2; // return bet + winnings
+    animateWinCoins();
+  } else if(p<d){
+    showMsg("You Lose","lose");
+    // bet already deducted in startDeal — nothing to return
+  } else {
+    showMsg("Tie","tie");
+    wallet+=currentBet; // push — return bet
+  }
+  renderWallet();
+  setChipsEnabled(true);
+  syncDealBtn();
   setBtns(true,false,false,false,false);
 }
 
+/*
+  Resolve both split hands against the dealer.
+  Reports each hand's result individually, then picks an overall
+  banner color based on whether wins outnumber losses.
+*/
 function resolveSplit(){
   const d=hval(dealer);
   const results=hands.map((h,i)=>{
     const p=hval(h);
-    if(p>21)return`Hand ${i+1}: Bust`;
-    if(d>21||p>d)return`Hand ${i+1}: Win`;
-    if(p<d)return`Hand ${i+1}: Lose`;
-    return`Hand ${i+1}: Tie`;
+    if(p>21){
+      return `Hand ${i+1}: Bust`;
+      // no payout — bet already deducted
+    }
+    if(d>21||p>d){
+      wallet+=splitBet*2; // win: return bet + winnings
+      return `Hand ${i+1}: Win`;
+    }
+    if(p<d){
+      return `Hand ${i+1}: Lose`;
+    }
+    wallet+=splitBet; // tie: return bet
+    return `Hand ${i+1}: Tie`;
   });
-  const wins=results.filter(r=>r.includes("Win")).length;
-  const losses=results.filter(r=>r.includes("Lose")||r.includes("Bust")).length;
-  showMsg(results.join(" · "),wins>losses?"win":losses>wins?"lose":"tie");
+  const wins   = results.filter(r=>r.includes("Win")).length;
+  const losses = results.filter(r=>r.includes("Lose")||r.includes("Bust")).length;
+  showMsg(results.join(" · "), wins>losses?"win":losses>wins?"lose":"tie");
+  if(wins>0) animateWinCoins();
+  renderWallet();
+  setChipsEnabled(true);
+  syncDealBtn();
   setBtns(true,false,false,false,false);
 }
 
-document.getElementById("deal").onclick=startDeal;
-document.getElementById("hit").onclick=doHit;
-document.getElementById("stand").onclick=doStand;
-document.getElementById("double").onclick=doDouble;
-document.getElementById("split").onclick=doSplit;
+/* Wire up the five action buttons to their handlers. */
+document.getElementById("deal").onclick   = startDeal;
+document.getElementById("hit").onclick    = doHit;
+document.getElementById("stand").onclick  = doStand;
+document.getElementById("double").onclick = doDouble;
+document.getElementById("split").onclick  = doSplit;
 
-/* ── Theme / brand swap ── */
+/*
+  Chip clicks add their face value to the pending bet, capped at the wallet balance.
+  Clear resets the bet to zero.
+  Both update the Deal button availability after each change.
+*/
+document.querySelectorAll(".chip").forEach(chip=>{
+  chip.onclick=function(){
+    bet=Math.min(bet + +this.dataset.value, wallet);
+    renderBet();
+    syncDealBtn();
+  };
+});
+
+document.getElementById("clear-bet").onclick=function(){
+  bet=25;
+  renderBet();
+  syncDealBtn();
+};
+
+// Initialize bet display and Deal button on page load
+renderBet();
+syncDealBtn();
+
+
+/*
+  ═══════════════════════════════════════════════════════════════════
+  THEME / BRAND SWAP
+  ═══════════════════════════════════════════════════════════════════
+  Selecting a casino:
+    1. Applies .theme-<name> to <body> → CSS variables cascade everywhere.
+    2. Marks "Play" as the active nav item.
+    3. Calls showLogo(theme) to fade in the casino wordmark.
+
+  showLogo(null) reverses all three steps (used by the "Learn" button).
+*/
 const brand    = document.getElementById("brand");
 const navLearn = document.getElementById("nav-learn");
 const navPlay  = document.getElementById("nav-play");
 
+/*
+  Swap the header wordmark.
+  theme = "aria" | "bellagio" | "wynn" → show that casino's logo.
+  theme = null → hide logos, reveal "Blackjack" title.
+*/
 function showLogo(theme){
   document.querySelectorAll(".logo-name").forEach(l=>l.classList.remove("active"));
   if(theme) document.getElementById("logo-"+theme).classList.add("active");
